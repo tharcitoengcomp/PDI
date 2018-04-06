@@ -1,37 +1,35 @@
-## Welcome to GitHub Pages
+#include <iostream>
+#include <opencv2/opencv.hpp>
+#include <cv.h>
+#include <highgui.h>
 
-You can use the [editor on GitHub](https://github.com/tharcitoengcomp/PDI/edit/master/index.md) to maintain and preview the content for your website in Markdown files.
+using namespace cv;
+using namespace std;
 
-Whenever you commit to this repository, GitHub Pages will run [Jekyll](https://jekyllrb.com/) to rebuild the pages in your site, from the content in your Markdown files.
+int main(int, char**){
+  Mat image;
 
-### Markdown
+  int v1[2], v2[2];
 
-Markdown is a lightweight and easy-to-use syntax for styling your writing. It includes conventions for
+  image= imread("naruto.jpg",CV_LOAD_IMAGE_GRAYSCALE);
+  if(!image.data)
+    cout << "erro!!! Não foi posivel carregar a imagem" << endl;
 
-```markdown
-Syntax highlighted code block
+  cout << "Informe as cordenadas inciais do ponto 1" << endl;
+  cin >> v1[0] >> v1[1];
+  
+  cout << "Informe o fim das cordenadas do ponto 2" << endl;
+  cin >> v2[0] >> v2[1];
 
-# Header 1
-## Header 2
-### Header 3
+  //Negativo da Imagem 
+  for(int i=v1[0];i<v2[0];i++){
+    for(int j=v1[1];j<v2[1];j++){
+      image.at<uchar>(i,j)= 255 - image.at<uchar>(i,j);
+    }
+  }
 
-- Bulleted
-- List
-
-1. Numbered
-2. List
-
-**Bold** and _Italic_ and `Code` text
-
-[Link](url) and ![Image](src)
-```
-
-For more details see [GitHub Flavored Markdown](https://guides.github.com/features/mastering-markdown/).
-
-### Jekyll Themes
-
-Your Pages site will use the layout and styles from the Jekyll theme you have selected in your [repository settings](https://github.com/tharcitoengcomp/PDI/settings). The name of this theme is saved in the Jekyll `_config.yml` configuration file.
-
-### Support or Contact
-
-Having trouble with Pages? Check out our [documentation](https://help.github.com/categories/github-pages-basics/) or [contact support](https://github.com/contact) and we’ll help you sort it out.
+  imshow("janela", image);
+  
+  waitKey();
+  return 0;
+}
