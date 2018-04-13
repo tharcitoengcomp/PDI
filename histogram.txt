@@ -1,0 +1,84 @@
+#include <iostream>
+#include <opencv2/opencv.hpp>
+
+using namespace cv;
+using namespace std;
+
+int main(int argc, char** argv){
+  Mat image;
+  int width, height;
+  VideoCapture cap;
+  vector<Mat> planes;
+  Mat histR, histG, histB, hist, hist_equalizado, hist2, hist2_equalizado;
+  int nbins = 64;
+  float range[] = {0, 256};
+  const float *histrange = { range };
+  bool uniform = true;
+  bool acummulate = false;
+
+//Abrindo e textando a camera
+  if(!cap.isOpened()){
+    cout << "Problema dispositivo da camera...\n";
+    return -1;
+  }
+
+  width  = cap.get(CV_CAP_PROP_FRAME_WIDTH);
+  height = cap.get(CV_CAP_PROP_FRAME_HEIGHT);
+
+  cout << "largura = " << width << endl;
+  cout << "altura  = " << height << endl;
+
+  int histw = nbins, histh = nbins/2;
+  // CV_8UC1 => Imagem em tom de cinza
+  Mat hist_imagem(histh, histw, CV_8UC1, Scalar(0)); 
+  Mat hist_imagemEQ(histh, histw, CV_8UC1, Scalar(0));
+
+  while(1){
+    cap >> image;
+    // Converte a imagem para tom de cinza
+    cvtColor(image, hist2, CV_BGR2GRAY); 
+
+    /*
+	Equalização dos histogramas - função equalizeHist do OpenCV
+    */
+    equalizeHist(hist2,hist2_equalizado);
+
+
+    // Calcula os histogramas das imagens original (em tom de cinza) e da imagem equalizada
+    calcHist(&hist2, 1, 0, Mat(), hist, 1,
+             &nbins, &histrange,
+             uniform, acummulate);
+    calcHist(&hist2_equalizado, 1, 0, Mat(), hist_equalizado, 1,
+             &nbins, &histrange,
+             uniform, acummulate);
+
+    
+    // Realizando os cáculos com as duas imagens em tom de cinza
+    normalize(hist, hist, 0, hist_imagem.rows, NORM_MINMAX, -1, Mat());
+    normalize(hist_equalizado, hist_equalizado, 0, hist_imagemEQ.rows, NORM_MINMAX, -1, Mat());
+
+    hist_imagem.setTo(Scalar(0));
+    hist_imagemEQ.setTo(Scalar(0));
+
+    for(int i=0; i<nbins; i++){
+      line(hist_imagem,
+           Point(i, histh),
+           Point(i, histh-cvRound(hist.at<float>(i))),
+           Scalar(0, 0, 255), 1, 8, 0);
+      line(hist_imagemEQ,
+           Point(i, histh),
+           Point(i, histh-cvRound(hist_equalizado.at<float>(i))),
+           Scalar(0, 255, 0), 1, 8, 0);
+    }
+
+    hist_imagem.copyTo(hist2(Rect(0, 0, nbins, histh)));
+    hist_imagemEQ.copyTo(hist2_equalizado(Rect(0, histh, nbins, histh)));
+
+    imshow("Imagem original", hist2);
+    imshow("imagem equalizada", hist2_equalizado);
+
+    if(waitKey(30) >= 0) break;
+  }
+  return 0;
+}
+
